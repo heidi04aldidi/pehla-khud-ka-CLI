@@ -46,9 +46,13 @@
 import { Command } from "commander";
 import chalk from "chalk";
 import { MathCommand } from "./commands/MathCommand";
+import { GreetCommand } from "./commands/GreetCommand";
+import { GithubService } from "./services/GithubService";
 
 const program = new Command();
 const math = new MathCommand();
+const greetCommand = new GreetCommand();
+const githubService = new GithubService();
 
 program
   .name("devtool")
@@ -88,6 +92,29 @@ program
       console.log(chalk.green(`Result: ${result}`));
     } catch (error: any) {
       console.log(chalk.red(error.message));
+    }
+  });
+
+program
+  .command("greet <name>")
+  .description("Greet a user")
+  .option("-u, --uppercase", "Convert greeting to uppercase")
+  .action((name: string, options: any) => {
+    const message = greetCommand.greet(name, options.uppercase);
+    console.log(chalk.blue(message));
+  });
+
+program
+  .command("github <username>")
+  .description("Get GitHub user info")
+  .action(async (username: string) => {
+    try {
+      const user = await githubService.getUser(username);
+      console.log(chalk.green(`Name: ${user.name}`));
+      console.log(chalk.yellow(`Public Repos: ${user.public_repos}`));
+      console.log(chalk.blue(`Followers: ${user.followers}`));
+    } catch {
+      console.log(chalk.red("User not found"));
     }
   });
 
