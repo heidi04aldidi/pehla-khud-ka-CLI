@@ -48,11 +48,20 @@ import chalk from "chalk";
 import { MathCommand } from "./commands/MathCommand";
 import { GreetCommand } from "./commands/GreetCommand";
 import { GithubService } from "./services/GithubService";
+import { QuoteService } from "./services/QuoteService";
+import { WeatherService } from "./services/WeatherService";
+import { TimeCommand } from "./commands/TimeCommand";
+import { RandomCommand } from "./commands/RandomCommand";
+
 
 const program = new Command();
 const math = new MathCommand();
 const greetCommand = new GreetCommand();
 const githubService = new GithubService();
+const quoteService = new QuoteService();
+const weatherService = new WeatherService();
+const timeCommand = new TimeCommand();
+const randomCommand = new RandomCommand();
 
 program
   .name("devtool")
@@ -118,4 +127,52 @@ program
     }
   });
 
+program
+  .command("quote")
+  .description("Get random quote")
+  .action(async () => {
+    const quote = await quoteService.getQuote();
+    console.log(chalk.cyan(`"${quote.content}"`));
+    console.log(chalk.gray(`- ${quote.author}`));
+  });
+
+program
+  .command("weather <city>")
+  .description("Get weather info")
+  .action(async (city: string) => {
+    try {
+      const data = await weatherService.getWeather(city);
+      console.log(chalk.green(`City: ${data.name}`));
+      console.log(chalk.yellow(`Temperature: ${data.main.temp}°C`));
+      console.log(chalk.blue(`Condition: ${data.weather[0].description}`));
+    } catch {
+      console.log(chalk.red("City not found"));
+    }
+  });
+
+program
+  .command("time")
+  .description("Show current date and time")
+  .action(() => {
+    console.log(chalk.magenta(`Current Time: ${timeCommand.getCurrentTime()}`));
+  });
+
+  program
+  .command("random")
+  .description("Generate a random number")
+  .option("-m, --min <number>", "Minimum value", "1")
+  .option("-x, --max <number>", "Maximum value", "100")
+  .action((options: any) => {
+    const min = Number(options.min);
+    const max = Number(options.max);
+
+    if (min > max) {
+      console.log(chalk.red("Min cannot be greater than Max"));
+      return;
+    }
+
+    const number = randomCommand.generate(min, max);
+    console.log(chalk.green(`Random Number: ${number}`));
+  });
+  
 program.parse(process.argv);
